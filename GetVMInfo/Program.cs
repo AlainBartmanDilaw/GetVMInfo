@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 
@@ -29,8 +30,11 @@ namespace GetVMInfo
             //startInfo.WindowStyle = ProcessWindowStyle.Normal;
             //startInfo.Arguments = @"/c 'C:\Program Files\Oracle\VirtualBox\VBoxManage.exe' guestproperty enumerate 'Centos 7 - Server Apache'".Replace('\'', '\"');
             //startInfo.Arguments = @"/c ""C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe"" guestproperty enumerate ""Centos 7 - Server Apache""";
-            startInfo.Arguments = String.Format(@"/c {0}C:/Program Files/Oracle/VirtualBox/VBoxManage.exe{0} guestproperty enumerate Centos62VM", '"');
+            startInfo.Arguments = @"/c ""C:/Program Files/Oracle/VirtualBox/VBoxManage.exe"" guestproperty get Centos7ServerApache /VirtualBox/GuestInfo/Net/0/V4/IP";
+            startInfo.Arguments = @"/c ""C:/Program Files/Oracle/VirtualBox/VBoxManage.exe"" showvminfo Centos7ServerApache --details --machinereadable";
+            // "C:/Program Files/Oracle/VirtualBox/VBoxManage.exe" showvminfo Centos62VM --details --machinereadable
 
+            var keyValues = new Dictionary<String, String>();
             try
             {
                 Console.WriteLine("Arg : >" + startInfo.Arguments + "<");
@@ -43,6 +47,14 @@ namespace GetVMInfo
                     {
                         string result = reader.ReadToEnd();
                         Console.WriteLine(result);
+                        foreach (string line in result.Split('\n'))
+                        {
+                            if (line.Contains("="))
+                            {
+                                String[] split = line.Split('=');
+                                keyValues.Add(split[0], split[1]);
+                            }
+                        }
                     }
                     Console.WriteLine("---ERROR---");
                     using (StreamReader reader = exeProcess.StandardError)
@@ -51,6 +63,8 @@ namespace GetVMInfo
                         Console.WriteLine(result);
                     }
                 }
+
+                Console.WriteLine("Description ==> " + keyValues["description"]);
             }
             catch (Exception exc)
             {
